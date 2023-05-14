@@ -1,0 +1,10 @@
+.main{
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: url('../../assets/images/background.png');
+  background-size: cover;
+  min-width: 100%;
+  min-height: 100%;
+}

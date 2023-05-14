@@ -1,5 +1,6 @@
 import { createContext,useState, useEffect} from "react"
 import jwt_decode from 'jwt-decode'
+import {useNavigate} from 'react-router-dom'
 
 const AuthContext = createContext()
 
@@ -8,16 +9,19 @@ export default AuthContext
 export const AuthProvider = ({children}) => {
   let [authTokens, setAuthTokens] = useState(() => localStorage.getItem('authTokens') ? JSON.parse(localStorage.getItem('authTokens')) : null)
   let [user, setUser] = useState(() => localStorage.getItem('authTokens') ? jwt_decode(JSON.parse(localStorage.getItem('authTokens')).access_token) : null)
-  let [loading, setLoading] = useState(true)
 
-  let login = async (email, password) => {
-    let url = process.env.REACT_APP_API_URL
+  const navigate = useNavigate()
+
+  let login = async (username, password) => {
+    let url = `${process.env.REACT_APP_API_URL}/auth`
     let response = await fetch(url,{
       method: 'POST',
-      body: {
-        'email': email,
-        'password': password
-      }
+      body: new URLSearchParams(
+        {
+            'username': username,
+            'password': password
+        }
+      )
     })
 
     let data = await response.json()
@@ -27,6 +31,7 @@ export const AuthProvider = ({children}) => {
       setAuthTokens(data)
       setUser(decode)
       localStorage.setItem('authTokens', JSON.stringify(data))
+      navigate(`/students/${username}`)
     }
     else
       alert(`Error: ${response.status}`)
@@ -46,47 +51,6 @@ export const AuthProvider = ({children}) => {
     logout: logout,
   }
 
-	// let updateToken = async ()=> {
-
-	// 	let url = `${process.env.REACT_APP_API_URL}/api/token/refresh/`
-	// 	let response = await fetch(url, {
-	// 			method:'POST',
-	// 			headers:{
-	// 					'Content-Type':'application/json'
-	// 			},
-	// 			body:JSON.stringify({'refresh':authTokens?.refresh})
-	// 	})
-
-	// 	let data = await response.json()
-		
-	// 	if (response.status === 200){
-	// 			setAuthTokens(data)
-	// 			setUser(jwt_decode(data.access))
-	// 			localStorage.setItem('authTokens', JSON.stringify(data))
-	// 	}else{
-	// 			logout()
-	// 	}
-
-	// 	if(loading){
-	// 			setLoading(false)
-	// 	}
-  //   }
-
-	// useEffect(()=> {
-	// 		if(loading){
-	// 				updateToken()
-	// 		}
-
-	// 		let fourMinutes = 1000 * 60 * 4
-
-	// 		let interval =  setInterval(()=> {
-	// 				if(authTokens){
-	// 						updateToken()
-	// 				}
-	// 		}, fourMinutes)
-	// 		return ()=> clearInterval(interval)
-
-	// }, [authTokens, loading, updateToken])
 
   return (
     <AuthContext.Provider value={contextData}>
